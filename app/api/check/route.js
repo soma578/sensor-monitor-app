@@ -1,5 +1,5 @@
-import { evaluateDevices, makeCsv } from '../../../lib/monitor.js'
-import { readMonitorSheets } from '../../../lib/sheet.js'
+import { evaluateLatest, makeCsv } from '../../../lib/monitor.js'
+import { readLatestSheet } from '../../../lib/sheet.js'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -16,12 +16,10 @@ const json = (status, body) => new Response(JSON.stringify(body), { status, head
 
 export async function handlePost(request, options = {}) {
   const spreadsheetId = options.spreadsheetId ?? process.env.SENSOR_MONITOR_SHEET_ID
-  const devicesSheetName = options.devicesSheetName ?? process.env.SENSOR_MONITOR_DEVICES_SHEET_NAME ?? 'devices'
   const latestSheetName = options.latestSheetName ?? process.env.SENSOR_MONITOR_LATEST_SHEET_NAME ?? 'latest'
   const credentialsJson = options.credentialsJson ?? process.env.SENSOR_MONITOR_GOOGLE_SERVICE_ACCOUNT_JSON
   if (!spreadsheetId || !/^[\w-]{10,}$/.test(spreadsheetId)
-    || !credentialsJson || !devicesSheetName || !latestSheetName
-    || /[\r\n]/.test(devicesSheetName) || /[\r\n]/.test(latestSheetName)) {
+    || !credentialsJson || !latestSheetName || /[\r\n]/.test(latestSheetName)) {
     return json(503, { error: 'Monitoring is not configured' })
   }
   if (!/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || '')) {
@@ -55,11 +53,11 @@ export async function handlePost(request, options = {}) {
     timer = setTimeout(() => { controller.abort(); reject(new Error('Storage timeout')) }, 7500)
   })
   try {
-    const read = options.read ?? readMonitorSheets
-    const { devices, latest } = await Promise.race([
-      read({ spreadsheetId, devicesSheetName, latestSheetName, credentialsJson, signal: controller.signal }), timeout,
+    const read = options.read ?? readLatestSheet
+    const latest = await Promise.race([
+      read({ spreadsheetId, latestSheetName, credentialsJson, signal: controller.signal }), timeout,
     ])
-    const result = evaluateDevices(devices, latest, thresholdHours, (options.now ?? new Date()).toISOString())
+    const result = evaluateLatest(latest, thresholdHours, (options.now ?? new Date()).toISOString())
     return json(200, { ...result, csv: makeCsv(result) })
   } catch (error) {
     console.error('[sensor-monitor] check failed', { reason: error?.message === 'Storage timeout' ? 'timeout' : 'sheets-request' })
