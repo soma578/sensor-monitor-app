@@ -1,0 +1,27 @@
+.shell { min-height: 100vh; padding: 32px 18px 80px; background: #f1f5f9; color: #17243a; font-family: system-ui, sans-serif; }
+.panel { width: min(100%, 1060px); margin: 0 auto 22px; padding: 28px; background: #fff; border: 1px solid #d9e2ec; border-radius: 14px; box-shadow: 0 6px 24px #1b355015; }
+.eyebrow { margin: 0 0 8px; color: #356694; font-size: .82rem; font-weight: 700; letter-spacing: .06em; }
+.panel h1 { margin: 0 0 10px; font-size: clamp(1.5rem, 3vw, 2rem); }
+.panel h2 { margin: 0 0 4px; font-size: 1.3rem; }
+.intro { margin: 0 0 24px; line-height: 1.65; }
+.form { display: flex; align-items: end; flex-wrap: wrap; gap: 14px; }
+.form label { display: grid; gap: 7px; font-weight: 600; }
+.form input { box-sizing: border-box; height: 42px; padding: 8px 11px; border: 1px solid #aebdcb; border-radius: 7px; font: inherit; }
+.form label:first-child input { width: min(100%, 310px); }
+.inputWithUnit { display: flex; align-items: center; gap: 8px; font-weight: 400; }
+.inputWithUnit input { width: 90px; }
+.panel button { height: 42px; padding: 0 17px; border: 0; border-radius: 7px; background: #175b91; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+.panel button:hover { background: #104771; }
+.panel button:disabled { opacity: .6; cursor: wait; }
+.caution { margin: 22px 0 0; padding: 12px 14px; border-left: 4px solid #eab308; background: #fefce8; line-height: 1.6; }
+.error { color: #a31c2e; font-weight: 700; }
+.resultHead { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.resultHead p { margin: 0; color: #53677e; }
+.summary { margin: 20px 0; font-size: 1.05rem; }
+.summary strong { color: #af2635; }
+.tableScroll { overflow-x: auto; }
+.tableScroll table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+.tableScroll th, .tableScroll td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+.tableScroll th { background: #f8fafc; }
+.alarm { color: #aa2731; font-weight: 700; }
+.normal { color: #16734d; font-weight: 700; }
