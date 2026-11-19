@@ -4,7 +4,6 @@ import { useState } from 'react'
 import styles from './sensor-monitor.module.css'
 
 export default function SensorMonitorPage() {
-  const [key, setKey] = useState('')
   const [thresholdHours, setThresholdHours] = useState(30)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
@@ -19,12 +18,11 @@ export default function SensorMonitorPage() {
       const response = await fetch('/api/check', {
         method: 'POST',
         cache: 'no-store',
-        headers: { 'Content-Type': 'application/json', 'X-Monitor-Key': key },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ thresholdHours: Number(thresholdHours) }),
       })
       if (!response.ok) {
-        throw new Error(response.status === 401 ? '監視者用キーが正しくありません'
-          : response.status === 503 ? 'シートを取得できません。設定または接続を確認してください'
+        throw new Error(response.status === 503 ? 'シートを取得できません。設定または接続を確認してください'
             : '確認を実行できませんでした')
       }
       setResult(await response.json())
@@ -48,13 +46,10 @@ export default function SensorMonitorPage() {
 
   return <main className={styles.shell}>
     <div className={styles.panel}>
-      <p className={styles.eyebrow}>オペレーター用 · 水ピィ杭</p>
+      <p className={styles.eyebrow}>水ピィ杭</p>
       <h1>センサー通信確認</h1>
-      <p className={styles.intro}>機器台帳の全監視対象と最終受信時刻を照合します。地図上のアラーム表示は行いません。</p>
+      <p className={styles.intro}>機器台帳の全監視対象と最終受信時刻を照合します。誰でも確認・CSV出力できます。地図上のアラーム表示は行いません。</p>
       <form onSubmit={runCheck} className={styles.form}>
-        <label>監視者用キー
-          <input type="password" autoComplete="off" value={key} onChange={(event) => setKey(event.target.value)} required />
-        </label>
         <label>通信なしと判定する時間
           <span className={styles.inputWithUnit}><input type="number" min="1" max="336" step="1" value={thresholdHours}
             onChange={(event) => setThresholdHours(event.target.value)} required /><span>時間以上</span></span>

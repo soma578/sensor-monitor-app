@@ -1,4 +1,3 @@
-import { createHash, timingSafeEqual } from 'node:crypto'
 import { evaluateDevices, makeCsv } from '../../../lib/monitor.js'
 import { readMonitorSheets } from '../../../lib/sheet.js'
 
@@ -8,31 +7,23 @@ export const revalidate = 0
 
 const responseHeaders = {
   'Content-Type': 'application/json; charset=utf-8',
-  'Cache-Control': 'private, no-store, max-age=0',
+  'Cache-Control': 'no-store',
   'CDN-Cache-Control': 'no-store',
   'Vercel-CDN-Cache-Control': 'no-store',
   'X-Content-Type-Options': 'nosniff',
 }
 const json = (status, body) => new Response(JSON.stringify(body), { status, headers: responseHeaders })
 
-function keyMatches(provided, expected) {
-  const a = createHash('sha256').update(provided || '').digest()
-  const b = createHash('sha256').update(expected || '').digest()
-  return timingSafeEqual(a, b)
-}
-
 export async function handlePost(request, options = {}) {
-  const apiKey = options.apiKey ?? process.env.SENSOR_MONITOR_API_KEY
   const spreadsheetId = options.spreadsheetId ?? process.env.SENSOR_MONITOR_SHEET_ID
   const devicesSheetName = options.devicesSheetName ?? process.env.SENSOR_MONITOR_DEVICES_SHEET_NAME ?? 'devices'
   const latestSheetName = options.latestSheetName ?? process.env.SENSOR_MONITOR_LATEST_SHEET_NAME ?? 'latest'
   const credentialsJson = options.credentialsJson ?? process.env.SENSOR_MONITOR_GOOGLE_SERVICE_ACCOUNT_JSON
-  if (!apiKey || apiKey.length < 32 || !spreadsheetId || !/^[\w-]{10,}$/.test(spreadsheetId)
+  if (!spreadsheetId || !/^[\w-]{10,}$/.test(spreadsheetId)
     || !credentialsJson || !devicesSheetName || !latestSheetName
     || /[\r\n]/.test(devicesSheetName) || /[\r\n]/.test(latestSheetName)) {
     return json(503, { error: 'Monitoring is not configured' })
   }
-  if (!keyMatches(request.headers.get('x-monitor-key'), apiKey)) return json(401, { error: 'Unauthorized' })
   if (!/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || '')) {
     return json(415, { error: 'Content-Type must be application/json' })
   }

@@ -5,7 +5,6 @@ import { readMonitorSheets } from '../lib/sheet.js'
 import { handlePost } from '../app/api/check/route.js'
 import { LATEST_HEADERS } from '../lib/latest.js'
 
-const key = 'operator-key-with-at-least-thirty-two-characters'
 const checkedAt = new Date('2026-11-19T12:00:00+09:00')
 const devices = normalizeDevices([DEVICE_HEADERS,
   ['A001', '1号杭', true], ['A002', '2号杭', 'TRUE'], ['A003', '=DANGEROUS', true], ['A004', '停止中', false]])
@@ -61,22 +60,20 @@ test('sheet reader batch-fetches devices and latest, and validates both headers'
   assert.equal(calls[0].method, 'GET')
 })
 
-function request({ providedKey = key, thresholdHours = 30, contentType = 'application/json' } = {}) {
+function request({ thresholdHours = 30, contentType = 'application/json' } = {}) {
   return new Request('https://example.test/api/check', { method: 'POST',
-    headers: { 'X-Monitor-Key': providedKey, 'Content-Type': contentType },
+    headers: { 'Content-Type': contentType },
     body: JSON.stringify({ thresholdHours }) })
 }
-const options = { apiKey: key, spreadsheetId: 'test-spreadsheet', credentialsJson: '{}', now: checkedAt,
+const options = { spreadsheetId: 'test-spreadsheet', credentialsJson: '{}', now: checkedAt,
   read: async () => ({ devices, latest }) }
 
-test('operator key and threshold are required; result is private and downloadable', async () => {
-  assert.equal((await handlePost(request({ providedKey: 'wrong' }), options)).status, 401)
+test('public check requires only a valid threshold; result is not cached', async () => {
   assert.equal((await handlePost(request({ thresholdHours: 0 }), options)).status, 400)
   assert.equal((await handlePost(request({ contentType: 'text/plain' }), options)).status, 415)
-  assert.equal((await handlePost(request(), { ...options, apiKey: '' })).status, 503)
   const response = await handlePost(request(), options)
   assert.equal(response.status, 200)
-  assert.match(response.headers.get('Cache-Control'), /no-store/)
+  assert.equal(response.headers.get('Cache-Control'), 'no-store')
   const body = await response.json()
   assert.equal(body.alarms, 2)
   assert.match(body.csv, /ALARM/)
